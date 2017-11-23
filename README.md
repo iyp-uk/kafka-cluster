@@ -133,3 +133,28 @@ OpenJDK Runtime Environment (build 1.8.0_151-8u151-b12-0ubuntu0.16.04.2-b12)
 OpenJDK 64-Bit Server VM (build 25.151-b12, mixed mode)
 ```
 in the version we expected. OK.
+
+### Installing Zookeeper
+
+Same as for Java, let's not reinvent the wheel and use an existing role.
+
+```console
+$ ansible-galaxy install  -p ./ansible/roles AnsibleShipyard.ansible-zookeeper
+```
+It comes with a [bunch of defaults](ansible/roles/AnsibleShipyard.ansible-zookeeper/defaults/main.yml) which we will customise slightly for now (the default mirror returned `404` and the version isn't the latest one):
+```yaml
+- name: Installing ZooKeeper
+  hosts: all
+  sudo: yes
+  roles:
+    - role: AnsibleShipyard.ansible-zookeeper
+      zookeeper_version: 3.4.10
+      zookeeper_url: http://www.mirrorservice.org/sites/ftp.apache.org/zookeeper/zookeeper-{{zookeeper_version}}/zookeeper-{{zookeeper_version}}.tar.gz
+```
+See if this runs:
+```console
+$ vagrant ssh -c "ps -ef | grep java"
+zookeep+  8316     1  0 13:50 ?        00:00:00 java -Dzookeeper.log.dir=. -Dzookeeper.root.logger=INFO,CONSOLE -cp /opt/zookeeper-3.4.10/bin/../build/classes:/opt/zookeeper-3.4.10/bin/../build/lib/*.jar:/opt/zookeeper-3.4.10/bin/../lib/slf4j-log4j12-1.6.1.jar:/opt/zookeeper-3.4.10/bin/../lib/slf4j-api-1.6.1.jar:/opt/zookeeper-3.4.10/bin/../lib/netty-3.10.5.Final.jar:/opt/zookeeper-3.4.10/bin/../lib/log4j-1.2.16.jar:/opt/zookeeper-3.4.10/bin/../lib/jline-0.9.94.jar:/opt/zookeeper-3.4.10/bin/../zookeeper-3.4.10.jar:/opt/zookeeper-3.4.10/bin/../src/java/lib/*.jar:/opt/zookeeper-3.4.10/bin/../conf: -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.local.only=false org.apache.zookeeper.server.quorum.QuorumPeerMain /opt/zookeeper-3.4.10/bin/../conf/zoo.cfg
+```
+Yay! It runs.
+
