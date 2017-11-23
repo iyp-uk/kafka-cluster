@@ -158,3 +158,24 @@ zookeep+  8316     1  0 13:50 ?        00:00:00 java -Dzookeeper.log.dir=. -Dzoo
 ```
 Yay! It runs.
 
+### Installing Kafka
+
+```console
+$ ansible-galaxy install  -p ./ansible/roles jaytaylor.kafka
+```
+
+and in `ansible/playbook.yml`:
+
+```yaml
+- name: Installing Kakfa
+  hosts: all
+  become: yes
+  roles:
+    - role: onaio.kafka
+      kafka_version: 1.0.0
+      kafka_hosts: "{{ ansible_fqdn }}:9092"
+      zookeeper_hosts: "{{ ansible_fqdn }}:2181"
+      kafka_heap_opts: "-Xmx521M -Xms512M"
+```
+
+> We've voluntary reduced heap opts here just so that it first in the VM. It's just a demo after all, shall be enough.
