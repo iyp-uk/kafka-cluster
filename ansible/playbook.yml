@@ -1,5 +1,15 @@
 ---
-- hosts: all
-  become: true
+- name: Installing Java
+  hosts: all
+  sudo: yes
   roles:
     - role: geerlingguy.java
+
+- name: Installing ZooKeeper
+  hosts: all
+  sudo: yes
+  roles:
+    - role: AnsibleShipyard.ansible-zookeeper
+      zookeeper_version: 3.4.10
+      zookeeper_url: http://www.mirrorservice.org/sites/ftp.apache.org/zookeeper/zookeeper-{{zookeeper_version}}/zookeeper-{{zookeeper_version}}.tar.gz
+
