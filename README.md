@@ -179,3 +179,32 @@ and in `ansible/playbook.yml`:
 ```
 
 > We've voluntary reduced heap opts here just so that it first in the VM. It's just a demo after all, shall be enough.
+
+Let's give it a try:
+
+```console
+$ vagrant ssh
+$ KAFKA_ROOT=/opt/kakfa/
+
+## Check the topics already there (we expect none of course!)
+$ $KAFKA_ROOT/bin/kafka-topics.sh --list --zookeeper localhost:2181
+$ 
+
+## So let's add one:
+$ $KAFKA_ROOT/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic test-one
+Created topic "test-one".
+
+## Add some messages:
+$ $KAFKA_ROOT/bin/kafka-console-producer.sh --broker-list localhost:9092 --topic test-one
+>Hello world!
+>Sushi
+> ^D
+
+## And retrieve them from the console consumer:
+$ $KAFKA_ROOT/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic test --from-beginning
+Hello world!
+Sushi
+^C
+```
+
+> Had to make some changes to the `onaio.kafka` role so that it can cope with the version `1.0.0` version of Kafka.
