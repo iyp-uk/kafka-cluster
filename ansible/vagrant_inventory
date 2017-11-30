@@ -1,0 +1,17 @@
+zoo1 ansible_host=192.168.77.101 ansible_user='vagrant' ansible_ssh_private_key_file='/Users/jerome/dev/intelematics/kafka-cluster/.vagrant/machines/zoo1/virtualbox/private_key'
+zoo2 ansible_host=192.168.77.102 ansible_user='vagrant' ansible_ssh_private_key_file='/Users/jerome/dev/intelematics/kafka-cluster/.vagrant/machines/zoo2/virtualbox/private_key'
+zoo3 ansible_host=192.168.77.103 ansible_user='vagrant' ansible_ssh_private_key_file='/Users/jerome/dev/intelematics/kafka-cluster/.vagrant/machines/zoo3/virtualbox/private_key'
+
+kaf1 ansible_host=192.168.77.111 ansible_user='vagrant' ansible_ssh_private_key_file='/Users/jerome/dev/intelematics/kafka-cluster/.vagrant/machines/kaf1/virtualbox/private_key'
+kaf2 ansible_host=192.168.77.112 ansible_user='vagrant' ansible_ssh_private_key_file='/Users/jerome/dev/intelematics/kafka-cluster/.vagrant/machines/kaf2/virtualbox/private_key'
+kaf3 ansible_host=192.168.77.113 ansible_user='vagrant' ansible_ssh_private_key_file='/Users/jerome/dev/intelematics/kafka-cluster/.vagrant/machines/kaf3/virtualbox/private_key'
+
+[zookeeper]
+zoo1
+zoo2
+zoo3
+
+[kafka]
+kaf1
+kaf2
+kaf3
