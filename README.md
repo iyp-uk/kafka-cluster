@@ -201,10 +201,73 @@ $ $KAFKA_ROOT/bin/kafka-console-producer.sh --broker-list localhost:9092 --topic
 > ^D
 
 ## And retrieve them from the console consumer:
-$ $KAFKA_ROOT/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic test --from-beginning
+$ $KAFKA_ROOT/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic test-one --from-beginning
 Hello world!
 Sushi
 ^C
 ```
 
 > Had to make some changes to the `onaio.kafka` role so that it can cope with the version `1.0.0` version of Kafka.
+
+## Step 2 - Clustering
+
+We will set here 3 nodes of each type:
+
+* 3 zookeeper instances
+* 3 kafka instances
+
+this is the minimal set up for ensembles, allowing us to have one node down at any point in time.
+
+Then now, we can:
+
+Create a topic on any kafka node:
+```console
+$ vagrant ssh kaf1
+vagrant@kaf1:~$ /opt/kafka/bin/kafka-topics.sh --create --zookeeper zoo1:2181 --topic test-topic --partitions 1 --replication-factor 3 
+Created topic "test-topic".
+```
+
+and see replication on all zoo instances:
+```console
+vagrant@kaf1:~$ /opt/kafka/bin/kafka-topics.sh --list --zookeeper zoo1:2181
+test-topic
+vagrant@kaf1:~$ /opt/kafka/bin/kafka-topics.sh --list --zookeeper zoo2:2181
+test-topic
+vagrant@kaf1:~$ /opt/kafka/bin/kafka-topics.sh --list --zookeeper zoo3:2181
+test-topic
+```
+
+Topic is replicated properly:
+```console
+vagrant@kaf1:/opt/kafka$ bin/kafka-topics.sh --describe --zookeeper zoo1:2181
+Topic:test-topic        PartitionCount:1        ReplicationFactor:3     Configs:
+        Topic: test-topic       Partition: 0    Leader: 2       Replicas: 2,0,1 Isr: 2,0,1
+```
+
+> note on the replication
+> `Leader` is the node responsible for all reads and writes for the given partition. Each node will be the leader for a randomly selected portion of the partitions.
+> `Replicas` is the list of nodes that replicate the log for this partition regardless of whether they are the leader or even if they are currently alive.
+> `Isr` is the set of "in-sync" replicas. This is the subset of the replicas list that is currently alive and caught-up to the leader.
+
+Sending some stuff, still from the kafka node 1:
+```console
+vagrant@kaf1:/opt/kafka$ bin/kafka-console-producer.sh --broker-list localhost:9092 --topic test-topic
+>test message
+>hello world!
+>
+```
+
+and consuming it from another kafka (node 2):
+```console
+vagrant@kaf2:/opt/kafka$ bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --from-beginning --topic test-topic
+test message
+hello world!
+```
+or the third kafka:
+```console
+vagrant@kaf3:/opt/kafka$ bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --from-beginning --topic test-topic
+test message
+hello world!
+```
+
+We can also take any node off the ensemble and see that the messages are still flowing.

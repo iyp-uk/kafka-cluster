@@ -1,26 +1,81 @@
 ---
+- hosts: all
+  become: yes
+  tasks:
+    - name: Update repositories cache
+      apt:
+        update_cache: yes
+    - name: Add IP address of all hosts to all hosts
+      lineinfile:
+        dest: /etc/hosts
+        line: "{{ hostvars[item].ansible_host }} {{ hostvars[item].inventory_hostname }} {{ hostvars[item].inventory_hostname_short }}"
+        state: present
+      with_items: "{{ groups.all }}"
+    - debug:
+        msg: "System {{ inventory_hostname }} {{ inventory_hostname_short }}"
+    - name: Remove all entries for 127.0.0.1
+      lineinfile:
+        dest: /etc/hosts
+        regexp: '^127\.0\.0\.1'
+        state: absent
+    - name: Map localhost to 127.0.0.1
+      lineinfile:
+        dest: /etc/hosts
+        line: '127.0.0.1 localhost'
+        state: present
+
+
 - name: Installing Java
   hosts: all
   become: yes
   roles:
     - role: geerlingguy.java
 
+- name: Open ports for Zookeeper
+  hosts: zookeeper
+  become: yes
+  tasks:
+    - ufw:
+        state: enabled
+        policy: allow
+    - ufw:
+        rule: allow
+        port: "{{ item }}"
+        proto: any
+      with_items:
+        - 2181
+        - 2888
+        - 3888
+
 - name: Installing ZooKeeper
-  hosts: all
+  hosts: zookeeper
   become: yes
   roles:
     - role: AnsibleShipyard.ansible-zookeeper
       zookeeper_version: 3.4.10
       zookeeper_url: http://www.mirrorservice.org/sites/ftp.apache.org/zookeeper/zookeeper-{{zookeeper_version}}/zookeeper-{{zookeeper_version}}.tar.gz
+      zookeeper_hosts: "{{groups['zookeeper']}}"
+
+- name: Open ports for Kafka
+  hosts: kafka
+  become: yes
+  tasks:
+    - ufw:
+        state: enabled
+        policy: allow
+    - ufw:
+        rule: allow
+        port: 9092
+        proto: any
 
 - name: Installing Kakfa
-  hosts: all
+  hosts: kafka
   become: yes
   roles:
     - role: onaio.kafka
       kafka_version: 1.0.0
-      kafka_hosts: "{{ ansible_fqdn }}:9092"
-      zookeeper_hosts: "{{ ansible_fqdn }}:2181"
+      kafka_hosts: "kaf1:9092,kaf2:9092,kaf3:9092"
+      zookeeper_hosts: "zoo1:2181,zoo2:2181,zoo3:2181"
       kafka_heap_opts: "-Xmx521M -Xms512M"
       kafka_num_partitions: 1
       kafka_num_io_threads: 8
